@@ -1,114 +1,195 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
-export default function Home() {
+
+import { useState } from "react";
+import { FaPlus, FaEye, FaRegArrowAltCircleRight } from "react-icons/fa";
+import StablecoinCard from "../context/StablecoinCard"; // Assuming you have a card component to display stablecoins
+
+const Home = () => {
+  const [stablecoins, setStablecoins] = useState<any[]>([]);
+  const [mintingAmount, setMintingAmount] = useState(0);
+  const [stablecoinName, setStablecoinName] = useState("");
+  const [stablecoinSymbol, setStablecoinSymbol] = useState("");
+  const [stablecoinIcon, setStablecoinIcon] = useState("");
+  const [targetCurrency, setTargetCurrency] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showViewCoins, setShowViewCoins] = useState(false);
+
+  // Handle minting stablecoins
+  const handleMintStablecoin = () => {
+    if (!mintingAmount || !stablecoinName || !stablecoinSymbol) return;
+
+    const newStablecoin = {
+      name: stablecoinName,
+      symbol: stablecoinSymbol,
+      icon: stablecoinIcon,
+      targetCurrency,
+      totalSupply: mintingAmount,
+    };
+    setStablecoins([...stablecoins, newStablecoin]);
+    clearForm();
+  };
+
+  // Handle minting more stablecoins for an existing stablecoin
+  const handleMintMoreStablecoin = (index: number) => {
+    if (!mintingAmount) return;
+    const updatedStablecoins = [...stablecoins];
+    updatedStablecoins[index].totalSupply += mintingAmount;
+    setStablecoins(updatedStablecoins);
+    setMintingAmount(0);
+  };
+
+  // Handle redeeming stablecoins
+  const handleRedeemStablecoin = (index: number) => {
+    if (!mintingAmount || mintingAmount > stablecoins[index].totalSupply) {
+      alert("Invalid amount or insufficient stablecoin supply.");
+      return;
+    }
+
+    const updatedStablecoins = [...stablecoins];
+    updatedStablecoins[index].totalSupply -= mintingAmount;
+    setStablecoins(updatedStablecoins);
+    setMintingAmount(0);
+  };
+
+  const clearForm = () => {
+    setMintingAmount(0);
+    setStablecoinName("");
+    setStablecoinSymbol("");
+    setStablecoinIcon("");
+    setTargetCurrency("");
+  };
+
   return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen flex flex-col justify-center items-center py-10 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
+      {/* Web3 Banner */}
+      <div className="w-full text-center p-5 mb-10">
+        <h1 className="text-5xl font-extrabold text-white mb-4">
+          Create and Manage Your Own Stablecoins on Sol-Fix
+        </h1>
+        <p className="text-lg text-white max-w-lg mx-auto mb-4">
+          Empower your crypto journey by creating personalized stablecoins
+          pegged to real-world currencies.
+        </p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Main Buttons */}
+      <div className="mb-10 w-full grid sm:grid-cols-1 md:grid-cols-1 lg:flex lg:space-x-4 justify-center items-center">
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-teal-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-teal-700 transition duration-300 flex items-center space-x-2 mb-5 lg:mb-0"
+        >
+          <FaPlus className="text-xl" />
+          <span>Create Stablecoin</span>
+        </button>
+        <button
+          onClick={() => setShowViewCoins(true)}
+          className="bg-blue-600 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700 transition duration-300 flex items-center space-x-2"
+        >
+          <FaEye className="text-xl" />
+          <span>View Stablecoins</span>
+        </button>
+      </div>
+
+      {/* Create Stablecoin Form */}
+      {showCreateForm && (
+        <div className="bg-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg">
+          <h2 className="text-3xl font-semibold mb-6">Create Your Stablecoin</h2>
+          <input
+            type="text"
+            value={stablecoinName}
+            onChange={(e) => setStablecoinName(e.target.value)}
+            className="w-full p-3 border border-gray-700 rounded-lg mb-4 text-white bg-gray-900 placeholder-gray-400"
+            placeholder="Stablecoin Name"
+          />
+          <input
+            type="text"
+            value={stablecoinSymbol}
+            onChange={(e) => setStablecoinSymbol(e.target.value)}
+            className="w-full p-3 border border-gray-700 rounded-lg mb-4 text-white bg-gray-900 placeholder-gray-400"
+            placeholder="Symbol (e.g., USD)"
+          />
+          <input
+            type="text"
+            value={stablecoinIcon}
+            onChange={(e) => setStablecoinIcon(e.target.value)}
+            className="w-full p-3 border border-gray-700 rounded-lg mb-4 text-white bg-gray-900 placeholder-gray-400"
+            placeholder="Icon URL (Optional)"
+          />
+          <input
+            type="text"
+            value={targetCurrency}
+            onChange={(e) => setTargetCurrency(e.target.value)}
+            className="w-full p-3 border border-gray-700 rounded-lg mb-4 text-white bg-gray-900 placeholder-gray-400"
+            placeholder="Target Currency (e.g., USD)"
+          />
+          <input
+            type="number"
+            value={mintingAmount}
+            onChange={(e) => setMintingAmount(Number(e.target.value))}
+            className="w-full p-3 border border-gray-700 rounded-lg mb-4 text-white bg-gray-900 placeholder-gray-400"
+            placeholder="Minting Amount"
+          />
+          <button
+            onClick={handleMintStablecoin}
+            className="w-full bg-teal-600 text-white py-3 rounded-lg mt-4 hover:bg-teal-700 transition duration-300"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Mint Stablecoin{" "}
+            <FaRegArrowAltCircleRight className="inline ml-2 text-xl" />
+          </button>
+          <button
+            onClick={() => setShowCreateForm(false)}
+            className="w-full bg-red-600 text-white py-3 rounded-lg mt-4 hover:bg-red-700 transition duration-300"
           >
-            Read our docs
-          </a>
+            Close Form
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+
+      {/* View Stablecoins */}
+      {showViewCoins && stablecoins.length > 0 && (
+        <div className="space-y-6 mt-10">
+          <h2 className="text-2xl font-semibold">Your Minted Stablecoins</h2>
+          {stablecoins.map((coin, idx) => (
+            <div key={idx} className="bg-gray-800 p-6 rounded-xl shadow-xl">
+              <StablecoinCard coin={coin} />
+              <div className="flex justify-between mt-4">
+                <button
+                  onClick={() => handleMintMoreStablecoin(idx)}
+                  className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                >
+                  Mint More
+                </button>
+                <button
+                  onClick={() => handleRedeemStablecoin(idx)}
+                  className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                >
+                  Redeem
+                </button>
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={() => setShowViewCoins(false)}
+            className="w-full bg-gray-600 text-white py-3 rounded-lg mt-4 hover:bg-gray-700 transition duration-300"
+          >
+            Close View
+          </button>
+        </div>
+      )}
+
+      {/* Display Message if No Stablecoins */}
+      {showViewCoins && stablecoins.length === 0 && (
+        <div className="text-center text-white mt-10">
+          <p className="text-lg">
+            You haven't created any stablecoins yet. Click on "Create
+            Stablecoin" to start!
+          </p>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default Home;
