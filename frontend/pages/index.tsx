@@ -1,12 +1,11 @@
-
-
-
-
 import { useState } from "react";
 import { FaPlus, FaEye, FaRegArrowAltCircleRight } from "react-icons/fa";
 import StablecoinCard from "../context/StablecoinCard"; // Assuming you have a card component to display stablecoins
+import { useStableCoin } from '../hooks/useStableCoin';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 const Home = () => {
+  const { initializeStablecoin, mintTokens } = useStableCoin();
   const [stablecoins, setStablecoins] = useState<any[]>([]);
   const [mintingAmount, setMintingAmount] = useState(0);
   const [stablecoinName, setStablecoinName] = useState("");
@@ -17,18 +16,21 @@ const Home = () => {
   const [showViewCoins, setShowViewCoins] = useState(false);
 
   // Handle minting stablecoins
-  const handleMintStablecoin = () => {
-    if (!mintingAmount || !stablecoinName || !stablecoinSymbol) return;
-
-    const newStablecoin = {
-      name: stablecoinName,
-      symbol: stablecoinSymbol,
-      icon: stablecoinIcon,
-      targetCurrency,
-      totalSupply: mintingAmount,
-    };
-    setStablecoins([...stablecoins, newStablecoin]);
-    clearForm();
+  const handleMintStablecoin = async () => {
+    try {
+      const tx = await initializeStablecoin({
+        name: stablecoinName,
+        symbol: stablecoinSymbol,
+        targetCurrency,
+        iconUri: stablecoinIcon,
+      });
+      
+      console.log('Transaction signature:', tx);
+      // Add success notification
+    } catch (error) {
+      console.error('Error:', error);
+      // Add error notification
+    }
   };
 
   // Handle minting more stablecoins for an existing stablecoin
@@ -63,6 +65,11 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center py-10 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
+      {/* Add wallet button */}
+      <div className="mb-6">
+        <WalletMultiButton />
+      </div>
+
       {/* Web3 Banner */}
       <div className="w-full text-center p-5 mb-10">
         <h1 className="text-5xl font-extrabold text-white mb-4">
